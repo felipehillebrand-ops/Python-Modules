@@ -1,0 +1,122 @@
+from typing import Dict, Tuple, List, Union
+from maze_generator import MazeGenerator
+
+
+ConfigDict = Dict[str, Union[int, Tuple[int, int], str, bool]]
+
+
+def parse_config(filename: str) -> ConfigDict:
+    """
+    Parses the configuration file and returns a dictionary of settings.
+    """
+    config: ConfigDict = {}
+    try:
+        with open(filename, "r") as f:
+            lines: List[str] = [
+                line.strip() for line in f
+                if line.strip() and not line.startswith("#")
+            ]
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Configuration file '{filename}' not found!")
+
+    for line in lines:
+        try:
+            key, raw_value = line.split("=")
+        except ValueError:
+            raise ValueError(f"Invalid line in config: '{line}'."
+                             f"Expected format KEY=VALUE")
+        key = key.strip()
+        value_str = raw_value.strip()
+
+        if key in config:
+            raise ValueError(f"Duplicate key found: '{key}'. "
+                             f"Each setting must be defined only once.")
+        try:
+            if key in ["WIDTH", "HEIGHT"]:
+                value = int(value_str)
+            elif key in ["ENTRY", "EXIT"]:
+                x, y = value_str.split(",")
+                value = (int(x), int(y))
+            elif key == "PERFECT":
+                normalized = value_str.lower()
+                if normalized == "true":
+                    value = True
+                elif normalized == "false":
+                    value = False
+                else:
+                    raise ValueError("PERFECT must be 'true' or 'false'")
+            elif key == "SEED":
+                value = int(value_str)
+            else:
+                value = value_str
+
+            config[key] = value
+
+        except (ValueError, IndexError, TypeError) as e:
+            if isinstance(e, ValueError) and ("Duplicate" in str(e)
+                                              or "PERFECT" in str(e)):
+                raise e
+            raise ValueError(f"Invalid value for '{key}':"
+                             f"'{value_str}'") from e
+
+    width = config.get("WIDTH")
+    height = config.get("HEIGHT")
+    entry = config.get("ENTRY")
+    exit_point = config.get("EXIT")
+
+    if not isinstance(width, int) or not isinstance(height, int):
+        raise ValueError("WIDTH and HEIGHT must be integers")
+    if width <= 0 or height <= 0:
+        raise ValueError("Width and height must be greater than zero")
+
+    if isinstance(entry, tuple) and isinstance(exit_point, tuple):
+        if not (0 <= entry[0] < width and 0 <= entry[1] < height):
+            raise ValueError("Entry coordinates are out of maze bounds")
+        if not (0 <= exit_point[0] < width and 0 <= exit_point[1] < height):
+            raise ValueError("Exit coordinates are out of maze bounds")
+        if entry == exit_point:
+            raise ValueError("Entry and exit cannot be the same cell")
+
+    return config
+
+
+def main() -> None:
+    """
+    Main function to run the A-Maze-ing program.
+    """
+    config: ConfigDict = parse_config("config.txt")
+    maze = MazeGenerator(config)
+    maze.generate()
+    maze.display()
+
+    print("\nSolving the maze...")
+    path = maze.solve()
+
+    output_filename = str(config.get("OUTPUT_FILE", "maze.txt"))
+
+    try:
+        with open(output_filename, "w") as f:
+            for row in maze.maze:
+                hex_row = "".join(f"{cell:X}" for cell in row)
+                f.write(hex_row + "\n")
+
+            f.write("\n")
+            f.write(f"{maze.entry[0]},{maze.entry[1]}\n")
+            f.write(f"{maze.exit[0]},{maze.exit[1]}\n")
+
+            trajectory = maze.get_solution_path(path)
+            f.write(trajectory + "\n")
+
+        print(f"\nSuccess! Maze and path saved to {output_filename}")
+
+    except Exception as e:
+        print(f"Error saving output file: {e}")
+
+    if path:
+        print(f"Path found! It takes {len(path)} steps.")
+    else:
+        print("No path found.")
+
+
+if __name__ == "__main__":
+    main()
