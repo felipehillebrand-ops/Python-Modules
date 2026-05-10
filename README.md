@@ -81,6 +81,7 @@ Through these projects, the following concepts were strengthened:
 - Modular programming
 - Code organization and reusability
 - File execution and script structure
+- Object-Oriented Programming (OOP) 
 - Problem-solving using Python
 - Best practices in Python development
 
