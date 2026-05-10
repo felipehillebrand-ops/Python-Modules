@@ -4,7 +4,7 @@
 
 This repository contains a collection of Python modules developed as part of the 42 curriculum.
 
-The main goal of this project is to practice and strengthen core Python programming concepts, including modular design, code reusability, and problem-solving using Python.
+The main goal of these projects is to practice and strengthen core Python programming concepts, including modular design, code reusability, and problem-solving using Python.
 
 Each module focuses on a specific concept or exercise, helping to build a solid understanding of Python fundamentals and good programming practices.
 
@@ -81,9 +81,10 @@ Through these projects, the following concepts were strengthened:
 - Modular programming
 - Code organization and reusability
 - File execution and script structure
-- Object-Oriented Programming (OOP) 
 - Problem-solving using Python
-- Best practices in Python development
+- Object-oriented programming fundamentals
+- Error handling and debugging
+- Working with data structures and files
 
 ---
 
